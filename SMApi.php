@@ -422,14 +422,13 @@ class SmartDataApi {
     //删除指定的api_key
     public function api_key_delete($api_key)
     {
-        $api = "/keys";
-        $ori_api_key = $this->_key;
-
-        $this->_key = $api_key;
+        if (empty($api_key)) {
+            return FALSE;
+        }
+        $api_key = urlencode($api_key);
+        $api = "/keys/{$api_key}";
 
         $res = $this->_call($api, 'DELETE');
-
-        $this->_key = $ori_api_key;
 
         return $res;
     }
