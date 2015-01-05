@@ -8,6 +8,7 @@ class SmartDataApi {
     protected $_key = NULL;
     protected $_base_url = 'http://api.heclouds.com/';
 
+    protected $_raw_response = '';//服务端返回的原始数据
     protected $_http_code = 200;
     protected $_error_no = 0;
     protected $_error = '';
@@ -23,6 +24,11 @@ class SmartDataApi {
         if (!empty($base_url)) {
             $this->_base_url = $base_url;
         }
+    }
+
+    public function raw_response()
+    {
+        return $this->_raw_response;
     }
 
     public function error()
@@ -118,6 +124,9 @@ class SmartDataApi {
         if (empty($device_id) || empty($datastream_id)) {
             return FALSE;
         }
+        
+        //对空格进行转义
+        $datastream_id = str_replace(" ","+", $datastream_id);
 
         $api = "/devices/{$device_id}/datastreams/{$datastream_id}";
         return $this->_call($api);
@@ -482,7 +491,8 @@ class SmartDataApi {
         return $this->_base_url . $url;
     }
 
-    protected function _call($url, $method = 'GET', $data = array(), $headers = array())
+    //返回直接的ret数据
+    protected function _rawcall($url, $method = 'GET', $data = array(), $headers = array())
     {
         $url = $this->_paddingUrl($url);
 
@@ -537,6 +547,13 @@ class SmartDataApi {
         }
 
         curl_close($ch);
+        $this->_raw_response = $ret;
+        return $ret;
+    }
+
+    protected function _call($url, $method = 'GET', $data = array(), $headers = array())
+    {
+        $ret = $this->_rawcall($url, $method, $data, $headers);
         $ori_ret = $ret;
         $ret = @json_decode($ret, TRUE);
         if (empty($ret)) {
