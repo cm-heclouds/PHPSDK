@@ -1,6 +1,7 @@
 <?php
 /**
- * SmartData API
+ * ChinaMobile OneNet API
+ * 类名SmartDataApi 将被废弃， 请使用OneNetApi
  * @author zhangzhan - goalzz85@gmail.com
  * @license BSD 3-Clause, http://opensource.org/licenses/BSD-3-Clause
  */
@@ -601,4 +602,10 @@ class SmartDataApi {
     {
 
     }
+}
+
+//修改项目名称为OneNet
+class OneNetApi extends SmartDataApi
+{
+    
 }
