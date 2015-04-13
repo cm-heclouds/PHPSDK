@@ -1,11 +1,11 @@
 <?php
-require 'SMApi.php';
+require 'OneNetApi.php';
 
 $apikey = '';
 $apiurl = 'http://api.heclouds.com';
 
 //创建api对象
-$sm = new SmartDataApi($apikey, $apiurl);
+$sm = new OneNetApi($apikey, $apiurl);
 
 $device_id = '';
 $device = $sm->device($device_id);
