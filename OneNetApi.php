@@ -60,7 +60,7 @@ class OneNetApi {
         }
 
         $api = "/devices/{$id}";
-
+        
         return $this->_call($api);
     }
 
@@ -89,7 +89,7 @@ class OneNetApi {
         
         $params_str = http_build_query($params);
         $api = '/devices?' . $params_str;
-
+        
         return $this->_call($api);
     }
 
@@ -130,6 +130,19 @@ class OneNetApi {
         $datastream_id = str_replace(" ","+", $datastream_id);
 
         $api = "/devices/{$device_id}/datastreams/{$datastream_id}";
+        return $this->_call($api);
+    }
+    
+    /**
+     * 获取某个设备下面的数据流
+     */
+    public function datastream_of_dev($device_id)
+    {
+        if (empty($device_id)) {
+            return FALSE;
+        }
+    
+        $api = "/devices/{$device_id}/datastreams";
         return $this->_call($api);
     }
 
@@ -227,7 +240,6 @@ class OneNetApi {
             'datastreams' => array()
         );
 
-
         foreach ($datas as $datastream_id => $d)
         {
             $datastream_data = array();
@@ -251,8 +263,8 @@ class OneNetApi {
                 'datapoints' => $datastream_data
             );
         }
-
         $api = "/devices/{$device_id}/datapoints";
+  
         return $this->_call($api, 'POST', $api_data);
     }
 
@@ -309,6 +321,7 @@ class OneNetApi {
          $params_str = http_build_query($params);
 
         $api = "/devices/{$device_id}/datapoints?" . $params_str;
+
         return $this->_call($api);
     }
 
@@ -348,55 +361,85 @@ class OneNetApi {
     }
 
     //触发器操作
-    public function trigger($device_id, $datastream_id, $trigger_id)
+    public function trigger($trigger_id)
     {
-        if (empty($device_id) || empty($datastream_id) || empty($trigger_id)) {
+        if (empty($trigger_id)) {
             return FALSE;
         }
 
-        $api = "/devices/{$device_id}/datastreams/{$datastream_id}/triggers/{$trigger_id}";
+        $api = "/triggers/{$trigger_id}";
+        return $this->_call($api);
+    }
+    
+    public function trigger_list($page = NULL, $per_page = NULL, $title = NULL)
+    {
+        $params = array(
+            'page' => is_numeric($page) ? $page : 1,
+            'per_page' => is_numeric($per_page) ? $per_page : 30,
+        );
+        
+        if(!is_null($title)){
+            $params['title'] = $title;
+        }
+        
+        $params_str = http_build_query($params);
+        
+        $api = "/triggers?" . $params_str;
         return $this->_call($api);
     }
 
-    public function trigger_add($device_id, $datastream_id, $trigger)
+
+    public function trigger_add($trigger)
     {
-        if (empty($device_id) || empty($datastream_id)) {
+        if (empty($trigger)) {
             return FALSE;
         }
+        $api = "/triggers";
 
-        $api = "/devices/{$device_id}/datastreams/{$datastream_id}/triggers";
         return $this->_call($api, 'POST', $trigger);
     }
 
 
-    public function trigger_edit($device_id, $datastream_id, $trigger_id, $trigger)
+    public function trigger_edit($trigger_id, $trigger)
     {
-        if (empty($device_id) || empty($datastream_id) || empty($trigger_id)) {
+        if (empty($trigger_id) || empty($trigger)) {
             return FALSE;
         }
-
-        $api = "/devices/{$device_id}/datastreams/{$datastream_id}/triggers/{$trigger_id}";
+        $api = "/triggers/{$trigger_id}";
         return $this->_call($api, 'PUT', $trigger);
     }
 
-    public function trigger_delete($device_id, $datastream_id, $trigger_id)
+    public function trigger_delete($trigger_id)
     {
-        if (empty($device_id) || empty($datastream_id) || empty($trigger_id)) {
+        if (empty($trigger_id)) {
             return FALSE;
         }
-        $api = "/devices/{$device_id}/datastreams/{$datastream_id}/triggers/{$trigger_id}";
+        $api = "/triggers/{$trigger_id}";
 
         return $this->_call($api, 'DELETE');
     }
 
-    //获取APIkey
-    public function api_key($dev_id)
+    /**
+     * 获取APIKey
+     * @return array 当指定$dev_id 和|或 $key时，返回满足条件的key信息；当两个参数都不指定时，返回用户的所用key
+     * @TODO 和后台讨论解决数据分页的问题
+     */
+    public function api_key($dev_id='', $key='')
     {
-        if (empty($dev_id)) {
-            return FALSE;
+        $params = array();
+        if( !empty($dev_id) ){
+            $params['dev_id'] = urlencode($dev_id); 
+        }
+        if( !empty($key) ){
+            $params['key'] = urlencode($key);
         }
 
-        $api = "/keys?dev_id=" . urlencode($dev_id);
+        $api = "/keys";
+        $par_str = http_build_query($params);
+        if( !empty($par_str) ){
+            $api .= "?".$par_str;
+        }
+
         $ret = $this->_call($api, 'GET');
         if ($ret === TRUE) {
             //数据是空的
@@ -431,6 +474,31 @@ class OneNetApi {
         return $this->_call($api, 'POST', $data);
     }
 
+    /**
+     * 修改key
+    *  @author Mackee 2015-06-17
+     */
+    public function api_key_edit($key, $title, $resource=null)
+    {
+        if( empty($key) ){
+            return false;
+        }
+
+        $data = array(
+            'title' => $title,
+            'permissions' => array(
+                array(
+                    'resources' => $resource
+                )
+            )
+        );
+
+        $api = "/keys/{$key}";
+        $res = $this->_call($api, 'PUT', $data);
+
+        return $res;
+    }
+
     //删除指定的api_key
     public function api_key_delete($api_key)
     {
@@ -460,6 +528,14 @@ class OneNetApi {
         $api = "/logs/{$device_id}?t_start=".$start_time;
 
         return $this->_call($api);
+    }
+    
+    public function send_data_to_edp($device_id, $sms){
+        if(empty($device_id)){
+            return FALSE;
+        }
+        $api = "/cmds/{$device_id}";
+        return $this->_call($api, 'POST', $sms);
     }
 
     //开始时间和结束时间转换为接口形式
@@ -557,7 +633,9 @@ class OneNetApi {
     protected function _call($url, $method = 'GET', $data = array(), $headers = array())
     {
         $ret = $this->_rawcall($url, $method, $data, $headers);
-        $ori_ret = $ret;
+        $ori_ret = $ret; 
+     
+        
         $ret = @json_decode($ret, TRUE);
         if (empty($ret)) {
             $ret = FALSE;
@@ -568,7 +646,7 @@ class OneNetApi {
                 } else {
                     $ret = TRUE;
                 }
-            } else {
+            } else {              
                 //产生了错误了
                 /**
                  * {
@@ -588,6 +666,7 @@ class OneNetApi {
         $this->_afterDecode($ch, $url, $method, $data, $ori_ret, $ret);
         
         return $ret;
+        
     }
 
     protected function _beforeCall($ch, $url, $method, $data)
