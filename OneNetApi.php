@@ -64,7 +64,7 @@ class OneNetApi {
         return $this->_call($api);
     }
 
-    public function device_list($page = 1, $page_size = 30, $key_word = NULL, $tag = NULL, $is_online = NULL, $is_private = NULL)
+    public function device_list($page = 1, $page_size = 30, $key_word = NULL, $tag = NULL, $is_online = NULL, $is_private = NULL, $device_ids = NULL)
     {
         $params = array(
             'page' => is_numeric($page) ? $page : 1,
@@ -85,6 +85,10 @@ class OneNetApi {
 
         if (!is_null($is_private)) {
             $params['private'] = $is_private;
+        }
+        
+        if(!is_null($device_ids)){
+            $params['device_ids'] = $device_ids;            
         }
         
         $params_str = http_build_query($params);
@@ -422,16 +426,21 @@ class OneNetApi {
     /**
      * 获取APIKey
      * @return array 当指定$dev_id 和|或 $key时，返回满足条件的key信息；当两个参数都不指定时，返回用户的所用key
-     * @TODO 和后台讨论解决数据分页的问题
      */
-    public function api_key($dev_id='', $key='')
+    public function api_key($dev_id=NULL, $key=NULL, $page=NULL, $per_page=NULL)
     {
         $params = array();
-        if( !empty($dev_id) ){
-            $params['dev_id'] = urlencode($dev_id); 
+        if( !is_null($dev_id) ){
+            $params['device_id'] = urlencode($dev_id); 
         }
-        if( !empty($key) ){
+            if( !is_null($key) ){
             $params['key'] = urlencode($key);
+        }
+        if( !is_null($page) ){
+            $params['page'] = urlencode($page);
+        }
+        if( !is_null($per_page) ){
+            $params['per_page'] = urlencode($per_page);
         }
 
         $api = "/keys";
@@ -474,10 +483,8 @@ class OneNetApi {
         return $this->_call($api, 'POST', $data);
     }
 
-    /**
-     * 修改key
-    *  @author Mackee 2015-06-17
-     */
+
+     //修改key
     public function api_key_edit($key, $title, $resource=null)
     {
         if( empty($key) ){
@@ -534,7 +541,7 @@ class OneNetApi {
         if(empty($device_id)){
             return FALSE;
         }
-        $api = "/cmds/{$device_id}";
+        $api = "/cmds?device_id={$device_id}";
         return $this->_call($api, 'POST', $sms);
     }
 
@@ -634,9 +641,9 @@ class OneNetApi {
     {
         $ret = $this->_rawcall($url, $method, $data, $headers);
         $ori_ret = $ret; 
-     
-        
+
         $ret = @json_decode($ret, TRUE);
+
         if (empty($ret)) {
             $ret = FALSE;
         } else {
