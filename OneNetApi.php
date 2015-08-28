@@ -88,12 +88,12 @@ class OneNetApi {
         }
         
         if(!is_null($device_ids)){
-            $params['device_ids'] = $device_ids;            
+            $params['device_id'] = $device_ids;
         }
         
         $params_str = http_build_query($params);
         $api = '/devices?' . $params_str;
-        
+
         return $this->_call($api);
     }
 
@@ -131,7 +131,8 @@ class OneNetApi {
         }
         
         //对空格进行转义
-        $datastream_id = str_replace(" ","+", $datastream_id);
+        //$datastream_id = str_replace(" ","+", $datastream_id);
+        $datastream_id = rawurlencode($datastream_id);      //空格处理的修改  2015-08-25
 
         $api = "/devices/{$device_id}/datastreams/{$datastream_id}";
         return $this->_call($api);
@@ -431,10 +432,11 @@ class OneNetApi {
     {
         $params = array();
         if( !is_null($dev_id) ){
-            $params['device_id'] = urlencode($dev_id); 
+            $params['device_id'] = urlencode($dev_id);
         }
             if( !is_null($key) ){
-            $params['key'] = urlencode($key);
+            //$params['key'] = urlencode($key);  //此处会引起多次encode
+            $params['key'] = $key;
         }
         if( !is_null($page) ){
             $params['page'] = urlencode($page);
@@ -543,6 +545,28 @@ class OneNetApi {
         }
         $api = "/cmds?device_id={$device_id}";
         return $this->_call($api, 'POST', $sms);
+    }
+    
+    public function get_dev_status($cmd_uuid){
+        
+        if(empty($cmd_uuid)){
+            return FALSE;
+        }
+        
+        $api = "/cmds/{$cmd_uuid}";
+        $res = $this->_call($api, 'GET');
+        return $res;
+    }
+    
+    public function get_dev_status_resp($cmd_uuid){
+    
+        if(empty($cmd_uuid)){
+            return FALSE;
+        }
+    
+        $api = "/cmds/{$cmd_uuid}/resp";
+        $res = $this->_call($api, 'GET');
+        return $res;
     }
 
     //开始时间和结束时间转换为接口形式
