@@ -79,10 +79,6 @@ class OneNetApi {
             $params['tag'] = $tag;
         }
 
-        if (!is_null($is_online)) {
-            $params['online'] = $is_online;
-        }
-
         if (!is_null($is_private)) {
             $params['private'] = $is_private;
         }
@@ -92,6 +88,12 @@ class OneNetApi {
         }
         
         $params_str = http_build_query($params);
+        
+        //2015-10-29 http build query会将true转义为1，API只接受true/false的布尔串
+        if (!is_null($is_online)) {
+            $params_str = $params_str . '&online=true';
+        }
+        
         $api = '/devices?' . $params_str;
 
         return $this->_call($api);
@@ -432,17 +434,16 @@ class OneNetApi {
     {
         $params = array();
         if( !is_null($dev_id) ){
-            $params['device_id'] = urlencode($dev_id);
+            $params['device_id'] = $dev_id;
         }
             if( !is_null($key) ){
-            //$params['key'] = urlencode($key);  //此处会引起多次encode
             $params['key'] = $key;
         }
         if( !is_null($page) ){
-            $params['page'] = urlencode($page);
+            $params['page'] = $page;
         }
         if( !is_null($per_page) ){
-            $params['per_page'] = urlencode($per_page);
+            $params['per_page'] = $per_page;
         }
 
         $api = "/keys";
