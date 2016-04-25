@@ -17,7 +17,7 @@ $apikey = '';
 $apiurl = 'http://api.heclouds.com';
 $device_id = 12345;
 //创建api对象
-$sm = new SmartDataApi($apikey, $apiurl);
+$sm = new OneNetApi($apikey, $apiurl);
 $device = $sm->device($device_id);
 var_dump($device);
 ```

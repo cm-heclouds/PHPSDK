@@ -1,7 +1,7 @@
 <?php
-require 'OneNetApi.php';
+require '../OneNetApi.php';
 
-$apikey = '';
+$apikey = 'your API key';
 $apiurl = 'http://api.heclouds.com';
 
 //创建api对象
