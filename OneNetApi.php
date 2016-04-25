@@ -695,7 +695,7 @@ class OneNetApi {
                 $ret = FALSE;
             }
         }
-        $this->_afterDecode($ch, $url, $method, $data, $ori_ret, $ret);
+        $this->_afterDecode($url, $method, $data, $ori_ret, $ret);
         
         return $ret;
         
@@ -711,7 +711,7 @@ class OneNetApi {
 
     }
 
-    protected function _afterDecode($ch, $url, $method, $data, $ori_ret, $ret)
+    protected function _afterDecode($url, $method, $data, $ori_ret, $ret)
     {
 
     }
