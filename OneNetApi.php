@@ -429,7 +429,7 @@ class OneNetApi
 
     /**
      * 获取APIKey
-     * 
+     *
      * @return array 当指定$dev_id 和|或 $key时，返回满足条件的key信息；当两个参数都不指定时，返回用户的所用key
      */
     public function api_key($dev_id = NULL, $key = NULL, $page = NULL, $per_page = NULL)
@@ -629,7 +629,8 @@ class OneNetApi
             return FALSE;
         }
         
-        if (empty($data)) {
+        //如果data不是想要的，直接设置为NULL
+        if (is_null($data) || (is_array($data) && count($data) == 0) || $data === FALSE) {
             $data = NULL;
         } else {
             if (is_array($data)) {
@@ -640,9 +641,9 @@ class OneNetApi
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_TIMEOUT, 2);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
-		if($method != 'GET'){
+        if ($method != 'GET') {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-		}
+        }
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
         // header set
