@@ -545,7 +545,7 @@ class OneNetApi
         if (empty($device_id)) {
             return FALSE;
         }
-        $api = "/cmds?device_id={$device_id}";
+        $api = "/cmds?device_id={$device_id}&qos={$qos}&timeout={$timeout}";
         return $this->_call($api, 'POST', $sms);
     }
 
