@@ -548,6 +548,13 @@ class OneNetApi
         $api = "/cmds?device_id={$device_id}&qos={$qos}&timeout={$timeout}";
         return $this->_call($api, 'POST', $sms);
     }
+	
+	public function send_data_to_mqtt($topic, $sms)
+    {
+
+        $api = "/mqtt?topic={$topic}";
+        return $this->_call($api, 'POST', $sms);
+    }
 
     public function get_dev_status($cmd_uuid)
     {
