@@ -540,7 +540,7 @@ class OneNetApi
         return $this->_call($api);
     }
 
-    public function send_data_to_edp($device_id, $sms)
+    public function send_data_to_edp($device_id, $qos, $timeout, $sms)
     {
         if (empty($device_id)) {
             return FALSE;
