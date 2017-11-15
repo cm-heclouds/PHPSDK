@@ -73,7 +73,55 @@ class OneNetApi
         
         return $this->_call($api);
     }
+    
+    /*
+     * 模糊搜索设备
+     *
+     * datas可以包含以下结构
+     *
+     * key_words=my, //匹配关键字（可选，从id和title字段中左匹配）
+     *
+     * auth_info=203x1 //鉴权信息（可选，对应注册时的sn参数，唯一设备编号）
+     *
+     * tag=mobile //标签（可选）
+     *
+     * online=true | false //在线状态（可选）
+     *
+     * private=true | false //私密性（可选）
+     *
+     * page=1 //指定页码，最大页数为10000（可选）
+     *
+     * per_page=30 //指定每页输出设备个数，默认30，最多100（可选）
+     *
+     * device_id=235122 //指定设备ID，多个用逗号分隔，最多100个（可选）
+     *
+     * begin=2016-06-20 //起始时间，包括当天（可选）
+     *
+     * end=2016-06-20 //结束时间，包括当天（可选）
+     */
+    public function device_search($datas = array())
+    {
+        $api = "/devices";
+        
+        return $this->_call($api);
+    }
 
+    public function device_status($dev_ids)
+    {
+        if (is_array($dev_ids)) {
+            $dev_ids = implode(',', $dev_ids);
+        }
+        
+        $api = "/devices/status?devIds={$dev_ids}";
+        
+        return $this->_call($api);
+    }
+    
+    /*
+     * 2017-11
+     * XXX 声明即将废弃，请使用device_search
+     * XXX will depreceted
+     */
     public function device_list($page = 1, $page_size = 30, $key_word = NULL, $tag = NULL, $is_online = NULL, $is_private = NULL, $device_ids = NULL)
     {
         $params = array(
@@ -113,6 +161,16 @@ class OneNetApi
     {
         $api = '/devices';
         return $this->_call($api, 'POST', $device);
+    }
+    
+    /*
+     * 1、$params中sn，mac一定要必填其中一个，而且只可以传一个，用于鉴权，就是设备新增中的auth_info
+     * 2、仅限EDP，MQTT，HTTP，TCP透传协议
+     */
+    public function device_register($register_code, $params = array())
+    {
+        $api = "/devices/register_de?register_code={$register_code}";
+        return $this->_call($api, 'POST', $params);
     }
 
     public function device_edit($id, $device)
@@ -281,7 +339,13 @@ class OneNetApi
         
         return $this->_call($api, 'POST', $api_data);
     }
-
+    
+    /*
+     * 2017-11
+     * 重制数据点获取操作
+     * 历史方法得到保留命名不变，增强兼容性
+     * 新方法以datapoints开头
+     */
     /**
      * 2015-04-13 OneNet更新后，将不再支持以下参数:
      * sort_time 可选，指定时按时间倒序排，最新时间在前面
@@ -289,6 +353,11 @@ class OneNetApi
      * per_page 指定每页输出数据点个数,可选, 默认300，最多1000
      *
      * 当前datastream更像是数据流的操作。废弃之前 datapoint_list, datapoint_multi_list 方法
+     */
+    /*
+     * 2017-11
+     * XXX 老的数据点获取方法，即将废弃，请使用datapoints_get
+     * XXX will deprecated
      */
     public function datapoint_get($device_id, $datastream_id, $start_time = NULL, $end_time = NULL, $limit = NULL, $cursor = NULL)
     {
@@ -298,7 +367,12 @@ class OneNetApi
         
         return $this->datapoint_multi_get($device_id, $start_time, $end_time, $limit, $cursor, $datastream_id);
     }
-
+    
+    /*
+     * 2017-11
+     * XXX 老的数据点获取方法，即将废弃，请使用datapoints_get
+     * XXX will deprecated
+     */
     public function datapoint_multi_get($device_id, $start_time = NULL, $end_time = NULL, $limit = NULL, $cursor = NULL, $datastream_ids = array())
     {
         if (empty($device_id)) {
@@ -336,7 +410,49 @@ class OneNetApi
         
         return $this->_call($api);
     }
-
+    
+    /*
+     * 2017-11
+     * 获取数据点方法
+     *
+     * $params可以包含以下
+     *
+     * datastream_id=a,b,c //查询的数据流，多个数据流之间用逗号分隔（可选）
+     *
+     * start=2015-01-10T08:00:35 //提取数据点的开始时间（可选）
+     *
+     * end=2015-01-10T08:00:35 //提取数据点的结束时间（可选）
+     *
+     * duration=3600 //查询时间区间（可选，单位为秒）
+     *
+     * start+duration：按时间顺序返回从start开始一段时间内的数据点
+     *
+     * end+duration：按时间倒序返回从end回溯一段时间内的数据点
+     *
+     * limit=100 //限定本次请求最多返回的数据点数，0<n<=6000（可选，默认1440）
+     *
+     * cursor= //指定本次请求继续从cursor位置开始提取数据（可选）
+     *
+     * sort=DESC | ASC //值为DESC|ASC时间排序方式，DESC:倒序，ASC升序，默认升序
+     */
+    public function datapoints_get($device_id, $params = array())
+    {
+        if (empty($device_id)) {
+            return FALSE;
+        }
+        
+        $params_str = http_build_query($params);
+        
+        $api = "/devices/{$device_id}/datapoints?{$params_str}";
+        
+        return $this->_call($api);
+    }
+    
+    /*
+     * 2017-11-15
+     * XXX 不建议使用删除数据点方法，大数据端使用任务+软删除机制，短时间并不会真正删除
+     * 如果有特殊需求可以使用该方法
+     */
     public function datapoint_delete($device_id, $datastream_id, $start_time = NULL, $end_time = NULL)
     {
         if (empty($device_id) || empty($datastream_id)) {
@@ -540,20 +656,114 @@ class OneNetApi
         return $this->_call($api);
     }
 
-    public function send_data_to_edp($device_id, $qos, $timeout, $sms)
+    public function send_data_to_edp($device_id, $qos, $timeout, $sms, $type = 0)
     {
         if (empty($device_id)) {
             return FALSE;
         }
-        $api = "/cmds?device_id={$device_id}&qos={$qos}&timeout={$timeout}";
+        
+        $params = array();
+        $params['device_id'] = $device_id;
+        
+        if ($qos === 0 || $qos === 1) {
+            $params['qos'] = $qos;
+        }
+        if (! empty($timeout)) {
+            $params['timeout'] = $timeout;
+        }
+        if ($type === 0 || $type === 1) {
+            $params['type'] = $type;
+        }
+        
+        $params = http_build_query($params);
+        
+        $api = "/cmds?{$params}";
         return $this->_call($api, 'POST', $sms);
     }
-	
-	public function send_data_to_mqtt($topic, $sms)
-    {
 
+    public function send_data_to_mqtt($topic, $sms)
+    {
         $api = "/mqtt?topic={$topic}";
         return $this->_call($api, 'POST', $sms);
+    }
+
+    public function send_data_to_edp_mqtt_use_device_id($device_id, $sms, $params = array())
+    {
+        if (empty($device_id)) {
+            return FALSE;
+        }
+        
+        $params['device_id'] = $device_id;
+        
+        $params = http_build_query($params);
+        
+        $api = "/cmds?{$params}";
+        return $this->_call($api, 'POST', $sms);
+    }
+    
+    /*
+     * $params可以包含以下
+     * 
+     * qos=0 | 1 //是否需要响应，默认为0。
+     *
+     * 0：不需要响应，即最多发送一次，不关心设备是否响应；
+     *
+     * 1：需要响应，如果设备收到命令后没有响应，则会在下一次设备登陆时若命令在有效期内(有效期定义参见timeout参数）则会继续发送。
+     *
+     * 对响应时间无限制，多次响应以最后一次为准。
+     *
+     * 本参数仅当type=0时有效；
+     *
+     * timeout=300 //命令有效时间，默认0。
+     *
+     * 0：在线命令，若设备在线,下发给设备，若设备离线，直接丢弃；
+     *
+     * >0： 离线命令，若设备在线，下发给设备，若设备离线，在当前时间加timeout时间内为有效期，有效期内，若设备上线，则下发给设备。单位：秒，有效围：0~2678400。
+     */
+    public function send_data_to_mqtt_use_device_id($device_id, $sms, $params = array())
+    {
+        if (empty($device_id)) {
+            return FALSE;
+        }
+        
+        $params['device_id'] = $device_id;
+        
+        $params = http_build_query($params);
+        
+        $api = "/cmds?{$params}";
+        return $this->_call($api, 'POST', $sms);
+    }
+
+    public function send_data_to_tcp_touchuan($device_id, $sms)
+    {
+        if (empty($device_id)) {
+            return FALSE;
+        }
+        
+        $params = array();
+        
+        $params['device_id'] = $device_id;
+        
+        $params = http_build_query($params);
+        
+        $api = "/cmds?{$params}";
+        return $this->_call($api, 'POST', $sms);
+    }
+    
+    public function send_data_to_modbus($device_id, $sms)
+    {
+        if (empty($device_id)) {
+            return FALSE;
+        }
+    
+        $params = array();
+    
+        $params['device_id'] = $device_id;
+    
+        $params = http_build_query($params);
+    
+        $api = "/cmds?{$params}";
+        return $this->_call($api, 'POST', array('cmd'=>$sms));
     }
 
     public function get_dev_status($cmd_uuid)
@@ -636,7 +846,7 @@ class OneNetApi
             return FALSE;
         }
         
-        //如果data不是想要的，直接设置为NULL
+        // 如果data不是想要的，直接设置为NULL
         if (is_null($data) || (is_array($data) && count($data) == 0) || $data === FALSE) {
             $data = NULL;
         } else {
