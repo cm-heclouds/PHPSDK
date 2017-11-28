@@ -101,7 +101,9 @@ class OneNetApi
      */
     public function device_search($datas = array())
     {
-        $api = "/devices";
+        $datas = http_build_query($datas);
+        
+        $api = "/devices?{$datas}";
         
         return $this->_call($api);
     }
