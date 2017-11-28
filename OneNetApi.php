@@ -110,6 +110,10 @@ class OneNetApi
 
     public function device_status($dev_ids)
     {
+        if (empty($dev_ids)) {
+            return FALSE;
+        }
+        
         if (is_array($dev_ids)) {
             $dev_ids = implode(',', $dev_ids);
         }
@@ -118,6 +122,26 @@ class OneNetApi
         
         return $this->_call($api);
     }
+    
+    /*
+     * 按设备id查看设备最新数据
+     * $dev_ids可以为1234,2345或array('1234','2345')
+     */
+    public function device_last_datapoints($dev_ids)
+    {
+        if (empty($dev_ids)) {
+            return FALSE;
+        }
+    
+        if(is_array($dev_ids)){
+            $dev_ids = implode(',', $dev_ids);
+        }
+    
+        $api = "/devices/datapoints?devIds={$dev_ids}";
+    
+        return $this->_call($api);
+    }
+    
     
     /*
      * 2017-11
@@ -449,6 +473,7 @@ class OneNetApi
         
         return $this->_call($api);
     }
+    
     
     /*
      * 2017-11-15
