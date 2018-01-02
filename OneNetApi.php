@@ -195,7 +195,7 @@ class OneNetApi
      */
     public function device_register($register_code, $params = array())
     {
-        $api = "/devices/register_de?register_code={$register_code}";
+        $api = "/register_de?register_code={$register_code}";
         return $this->_call($api, 'POST', $params);
     }
 
