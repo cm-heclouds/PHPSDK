@@ -811,7 +811,7 @@ class OneNetApi
         }
         
         $api = "/cmds/{$cmd_uuid}/resp";
-        $res = $this->_call($api, 'GET');
+        $res = $this->_rawcall($api, 'GET');
         return $res;
     }
     
